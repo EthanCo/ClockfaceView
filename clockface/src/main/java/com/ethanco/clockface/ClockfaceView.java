@@ -21,8 +21,10 @@ import static android.content.ContentValues.TAG;
  */
 
 public class ClockfaceView extends View {
-    private Paint mPlatePaint; //钟表底盘
+
+    private Paint mHalopaint; //分钟光环
     private Paint mHourPaint;  //小时文字
+    private Paint mPlatePaint; //黑色表盘
 
     public ClockfaceView(Context context) {
         super(context);
@@ -47,8 +49,11 @@ public class ClockfaceView extends View {
         mHourPaint.setTextSize(80);
         mHourPaint.setTypeface(Typeface.DEFAULT_BOLD);//设置字体类型
 
-        mPlatePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mHalopaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         //mPlatePaint.setColor(Color.GREEN);
+
+        mPlatePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPlatePaint.setColor(Color.rgb(0x3b, 0x3a, 0x3f));
 
         int radius = 150;
 
@@ -66,10 +71,14 @@ public class ClockfaceView extends View {
 
         LinearGradient gradient = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
                 gradientEndPoint.x, gradientEndPoint.y, Color.rgb(0x01, 0xce, 0x9b), Color.rgb(0xae, 0xe8, 0x47), Shader.TileMode.CLAMP);
-        mPlatePaint.setShader(gradient);
+        mHalopaint.setShader(gradient);
+
+        //LinearGradient gradient1 = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
+        //       gradientEndPoint.x, gradientEndPoint.y, Color.RED, Color.BLUE, Shader.TileMode.CLAMP);
 
         LinearGradient gradient1 = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
-                gradientEndPoint.x, gradientEndPoint.y, Color.RED, Color.BLUE, Shader.TileMode.CLAMP);
+                gradientEndPoint.x, gradientEndPoint.y, Color.rgb(0xae, 0xe8, 0x47), Color.rgb(0x01, 0xce, 0x9b), Shader.TileMode.CLAMP);
+
         mHourPaint.setShader(gradient1);
     }
 
@@ -92,8 +101,12 @@ public class ClockfaceView extends View {
         Log.i(TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
         Log.i(TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
         RectF plateRectF = new RectF(0, 0, 300, 300); //TODO dp to px
-        canvas.drawArc(plateRectF, -90, 270, true, mPlatePaint);
+        canvas.drawArc(plateRectF, -90, 270, true, mHalopaint);
         canvas.save();
+
+        int centerX = 150, centerY = 150;
+        int plateRadius = radius - 30;
+        canvas.drawCircle(centerX, centerY, plateRadius, mPlatePaint);
 
         Paint.FontMetrics fm = mHourPaint.getFontMetrics();
         //字体高度 http://sd4886656.iteye.com/blog/1200890

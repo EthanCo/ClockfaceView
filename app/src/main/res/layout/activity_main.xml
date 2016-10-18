@@ -12,6 +12,5 @@
 
     <com.ethanco.clockface.ClockfaceView
         android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:background="@android:color/holo_orange_dark" />
+        android:layout_height="300dp"/>
 </RelativeLayout>
