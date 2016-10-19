@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="DefaultClockfaceStyle">
+        <item name="ringStartColor">#01ce9b</item>
+        <item name="ringEndColor">#aee847</item>
+        <item name="hourStartColor">#01ce9b</item>
+        <item name="hourEndColor">#aee847</item>
+        <item name="plateColor">#3b3a3f</item>
+
+        <item name="ringWidth">10dp</item>
+        <item name="hourTextSize">42sp</item>
+
+        <item name="mTopTextColor">#abc5b3</item>
+        <item name="mTopTextSize">24sp</item>
+
+        <item name="mBottomTextColor">#FFFFFF</item>
+        <item name="mBottomTextSize">22sp</item>
+
+        <item name="mBottomSecondTextColor">#FFFFFF</item>
+        <item name="mBottomSecondTextSize">16sp</item>
+    </style>
+</resources>

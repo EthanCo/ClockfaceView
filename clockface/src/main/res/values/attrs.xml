@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ClockFaceView">
+        <attr name="ringStartColor" format="color" />
+        <attr name="ringEndColor" format="color" />
+        <attr name="ringWidth" format="dimension" />
+
+        <attr name="hourStartColor" format="color" />
+        <attr name="hourEndColor" format="color" />
+
+        <attr name="plateColor" format="color" />
+
+        <attr name="mTopTextColor" format="color" />
+        <attr name="mTopTextSize" format="dimension" />
+
+        <attr name="mBottomTextColor" format="color" />
+        <attr name="mBottomTextSize" format="dimension" />
+
+        <attr name="mBottomSecondTextColor" format="color" />
+        <attr name="mBottomSecondTextSize" format="dimension" />
+
+        <attr name="hourTextSize" format="dimension" />
+    </declare-styleable>
+</resources>
