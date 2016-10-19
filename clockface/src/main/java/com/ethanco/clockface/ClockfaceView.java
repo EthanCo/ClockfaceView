@@ -1,5 +1,6 @@
 package com.ethanco.clockface;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -9,11 +10,14 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import static android.content.ContentValues.TAG;
+import java.lang.ref.WeakReference;
+import java.util.Date;
 
 /**
  * @Description 时间表盘 View
@@ -23,6 +27,8 @@ import static android.content.ContentValues.TAG;
 public class ClockfaceView extends View {
     private static final float DEFAULT_WIDTH = 300;
     private static final float DEFAULT_HEIGHT = 300;
+    public static final String TAG = "Z-Clockface";
+
     private final int mRingStartColor;
     private final int mRingEndColor;
     private final int mHourStartColor;
@@ -48,6 +54,47 @@ public class ClockfaceView extends View {
     private Paint mTopTextPaint;
     private Paint mBottomTextPaint;
     private Paint mBottomSecondTextPaint;
+
+    private String txtHour = "--:--"; //小时分钟
+    private String txtTimeFrame = "--"; //时段 AM、PM
+    private String txtWeek = "--月--日 星期-/-"; //星期
+    private String txtLunarCalendar = "-/-年-/-月-/-"; //农历
+    private int second = 0;
+    private float ringIncreasePercent;
+
+    private static class UpdateHandler extends Handler {
+        protected WeakReference<ClockfaceView> clockfaceRef;
+
+        public UpdateHandler(ClockfaceView clockfaceView) {
+            this.clockfaceRef = new WeakReference(clockfaceView);
+        }
+    }
+
+    public static final int DELAY_MILLIS = 1000;
+    private UpdateHandler mH = new UpdateHandler(this) {
+        @Override
+        public void handleMessage(Message msg) {
+            ClockfaceView clockfaceview = this.clockfaceRef.get();
+            if (clockfaceview == null) return;
+
+            updateDateInfo();
+            invalidate();
+
+            mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
+        }
+    };
+
+    private void updateDateInfo() {
+        Date d = new Date();
+        txtHour = DateUtil.date2Str(d, DateUtil.FORMAT_HM);
+        txtTimeFrame = DateUtil.getAmPm(d);
+        txtWeek = String.format(getResources().getString(R.string.date_info),
+                DateUtil.getMonth(d), DateUtil.getDay(d), DateUtil.getWeek(d));
+        Lunar lunar = DateUtil.getLunar(d);
+        txtLunarCalendar = String.format(getResources().getString(
+                R.string.date_lunar), lunar.cyclical(), lunar.toString());
+        second = DateUtil.getSecond(d);
+    }
 
     public ClockfaceView(Context context) {
         this(context, null);
@@ -80,6 +127,8 @@ public class ClockfaceView extends View {
         ta.recycle();
 
         init(context);
+
+        mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
     }
 
     private void init(Context context) {
@@ -119,7 +168,7 @@ public class ClockfaceView extends View {
         //int leftStart = (int) (mRadius - sqrt);
         //int rightEnd = (int) (mRadius + sqrt) + 1;
 
-        Log.i(TAG, "init gradientStartPoint.x: " + gradientStartPoint.x + " gradientStartPoint.y:"
+        Log.i(ContentValues.TAG, "init gradientStartPoint.x: " + gradientStartPoint.x + " gradientStartPoint.y:"
                 + gradientStartPoint.y + " gradientEndPoint.x:" + gradientEndPoint.x + " gradientEndPoint.y:" + gradientEndPoint.y);
 
         LinearGradient gradient = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
@@ -192,10 +241,14 @@ public class ClockfaceView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        Log.i(TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
-        Log.i(TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
+        Log.i(ContentValues.TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
+        Log.i(ContentValues.TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
         RectF plateRectF = new RectF(0, 0, mDiameter, mDiameter);
-        canvas.drawArc(plateRectF, -90, 270, true, mRingPaint);
+        float angle = second / 60F * 360;
+        if (angle > 355 || angle < 5) {
+            angle = 360;
+        }
+        canvas.drawArc(plateRectF, -90, angle, true, mRingPaint);
         canvas.save();
 
         int centerX = mRadius, centerY = mRadius;
@@ -211,14 +264,14 @@ public class ClockfaceView extends View {
         Paint.FontMetricsInt fontMetrics = mHourPaint.getFontMetricsInt();
         int baseline = (int) ((plateRectF.bottom + plateRectF.top - fontMetrics.bottom - fontMetrics.top) / 2F);
 
-        canvas.drawText("10:27", plateRectF.centerX(), baseline, mHourPaint);
+        canvas.drawText(txtHour, plateRectF.centerX(), baseline, mHourPaint);
         //canvas.drawText("15:30", 44, mRadius + hourHalfHeight, mHourPaint);
 
-        canvas.drawText("PM", plateRectF.centerX(), baseline / 2F, mTopTextPaint);
+        canvas.drawText(txtTimeFrame, plateRectF.centerX(), baseline / 2F, mTopTextPaint);
 
-        canvas.drawText("10月13日 星期四", plateRectF.centerX(), baseline + mRadius * 0.3F, mBottomTextPaint);
+        canvas.drawText(txtWeek, plateRectF.centerX(), baseline + mRadius * 0.3F, mBottomTextPaint);
 
         Paint.FontMetrics bottomSecondFm = mHourPaint.getFontMetrics();
-        canvas.drawText("农历九月十三", plateRectF.centerX(), baseline + mRadius * 0.3F + bottomSecondFm.bottom + mRadius * 0.13F, mBottomSecondTextPaint);
+        canvas.drawText(txtLunarCalendar, plateRectF.centerX(), baseline + mRadius * 0.3F + bottomSecondFm.bottom + mRadius * 0.13F, mBottomSecondTextPaint);
     }
 }

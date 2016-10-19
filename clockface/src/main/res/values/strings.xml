@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Clockface</string>
+
+    <string name="date_info">%1$d月%2$d日 %3$s</string>
+    <string name="date_lunar">%1$s年%2$s</string>
+
 </resources>
