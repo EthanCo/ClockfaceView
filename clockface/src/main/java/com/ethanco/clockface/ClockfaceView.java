@@ -21,6 +21,8 @@ import static android.content.ContentValues.TAG;
  */
 
 public class ClockfaceView extends View {
+    private static final float DEFAULT_WIDTH = 300;
+    private static final float DEFAULT_HEIGHT = 300;
     private final int mRingStartColor;
     private final int mRingEndColor;
     private final int mHourStartColor;
@@ -35,9 +37,10 @@ public class ClockfaceView extends View {
     private final int mBottomSecondTextColor;
     private final float mBottomSecondTextSize;
 
-    private int mWidth;
-    private int mHeight;
-    private int mRadius;
+    private int mWidth; //View宽
+    private int mHeight; //View高
+    private int mRadius; //半径
+    private int mDiameter; //直径
 
     private Paint mRingPaint; //分钟光环
     private Paint mHourPaint;  //小时文字
@@ -135,15 +138,54 @@ public class ClockfaceView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        mWidth = getViewWidth(widthMeasureSpec);
+        mHeight = getViewHeight(heightMeasureSpec);
+        setMeasuredDimension(mWidth, mHeight);
+    }
+
+    private int getViewHeight(int heightMeasureSpec) {
+        int result = 0;
+        int mode = View.MeasureSpec.getMode(heightMeasureSpec);
+        int size = View.MeasureSpec.getSize(heightMeasureSpec);
+        if (mode == View.MeasureSpec.EXACTLY) {
+            result = size;
+        } else {
+            result = Utils.dp2px(getContext(), DEFAULT_HEIGHT);
+            if (mode == View.MeasureSpec.AT_MOST) {
+                result = Math.min(result, size);
+            }
+        }
+        return result;
+    }
+
+    private int getViewWidth(int widthMeasureSpec) {
+        int result = 0;
+        int mode = View.MeasureSpec.getMode(widthMeasureSpec);
+        int size = View.MeasureSpec.getSize(widthMeasureSpec);
+        if (mode == View.MeasureSpec.EXACTLY) {
+            result = size;
+        } else {
+            result = Utils.dp2px(getContext(), DEFAULT_WIDTH);
+            if (mode == View.MeasureSpec.AT_MOST) {
+                result = Math.min(result, size);
+            }
+        }
+        return result;
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-        mWidth = getWidth();
-        mHeight = getHeight();
-        mRadius = (int) (Math.min(mWidth, mHeight) / 2.0F);
+//        int width = getWidth();
+//        int height = getHeight();
+//        int min = Math.min(width, height);
+//        mWidth = min;
+//        mHeight = min;
+
+        mDiameter = Math.min(mWidth, mHeight);
+        mRadius = (int) (mDiameter / 2.0F);
     }
 
     @Override
@@ -152,7 +194,7 @@ public class ClockfaceView extends View {
 
         Log.i(TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
         Log.i(TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
-        RectF plateRectF = new RectF(0, 0, mWidth, mHeight); //TODO dp to px
+        RectF plateRectF = new RectF(0, 0, mDiameter, mDiameter);
         canvas.drawArc(plateRectF, -90, 270, true, mRingPaint);
         canvas.save();
 
