@@ -1,6 +1,5 @@
 package com.ethanco.clockface;
 
-import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -25,7 +24,7 @@ import java.util.Date;
  * Created by EthanCo on 2016/10/13.
  */
 
-public class ClockfaceView extends View {
+public class ClockfaceViewComm extends View {
     private static final float DEFAULT_WIDTH = 300;
     private static final float DEFAULT_HEIGHT = 300;
     public static final String TAG = "Z-Clockface";
@@ -60,15 +59,13 @@ public class ClockfaceView extends View {
     private String txtTimeFrame = "--"; //时段 AM、PM
     private String txtWeek = "--月--日 星期-/-"; //星期
     private String txtLunarCalendar = "-/-年-/-月-/-"; //农历
-    private int second = 0; //秒
+    private int second = 0;
     private float ringIncreasePercent;
-    private float ringWidthPercent;
-    private ValueAnimator valueAnimator1;
 
     private static class UpdateHandler extends Handler {
-        protected WeakReference<ClockfaceView> clockfaceRef;
+        protected WeakReference<ClockfaceViewComm> clockfaceRef;
 
-        public UpdateHandler(ClockfaceView clockfaceView) {
+        public UpdateHandler(ClockfaceViewComm clockfaceView) {
             this.clockfaceRef = new WeakReference(clockfaceView);
         }
     }
@@ -77,12 +74,11 @@ public class ClockfaceView extends View {
     private UpdateHandler mH = new UpdateHandler(this) {
         @Override
         public void handleMessage(Message msg) {
-            ClockfaceView clockfaceview = this.clockfaceRef.get();
+            ClockfaceViewComm clockfaceview = this.clockfaceRef.get();
             if (clockfaceview == null) return;
 
             updateDateInfo();
-            startAnim();
-            //invalidate();
+            invalidate();
 
             mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
         }
@@ -100,15 +96,15 @@ public class ClockfaceView extends View {
         second = DateUtil.getSecond(d);
     }
 
-    public ClockfaceView(Context context) {
+    public ClockfaceViewComm(Context context) {
         this(context, null);
     }
 
-    public ClockfaceView(Context context, AttributeSet attrs) {
+    public ClockfaceViewComm(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ClockfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ClockfaceViewComm(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ClockFaceView, defStyleAttr, R.style.DefaultClockfaceStyle);
@@ -199,13 +195,13 @@ public class ClockfaceView extends View {
 
     private int getViewHeight(int heightMeasureSpec) {
         int result = 0;
-        int mode = View.MeasureSpec.getMode(heightMeasureSpec);
-        int size = View.MeasureSpec.getSize(heightMeasureSpec);
-        if (mode == View.MeasureSpec.EXACTLY) {
+        int mode = MeasureSpec.getMode(heightMeasureSpec);
+        int size = MeasureSpec.getSize(heightMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
             result = size;
         } else {
             result = Utils.dp2px(getContext(), DEFAULT_HEIGHT);
-            if (mode == View.MeasureSpec.AT_MOST) {
+            if (mode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, size);
             }
         }
@@ -214,13 +210,13 @@ public class ClockfaceView extends View {
 
     private int getViewWidth(int widthMeasureSpec) {
         int result = 0;
-        int mode = View.MeasureSpec.getMode(widthMeasureSpec);
-        int size = View.MeasureSpec.getSize(widthMeasureSpec);
-        if (mode == View.MeasureSpec.EXACTLY) {
+        int mode = MeasureSpec.getMode(widthMeasureSpec);
+        int size = MeasureSpec.getSize(widthMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
             result = size;
         } else {
             result = Utils.dp2px(getContext(), DEFAULT_WIDTH);
-            if (mode == View.MeasureSpec.AT_MOST) {
+            if (mode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, size);
             }
         }
@@ -245,13 +241,13 @@ public class ClockfaceView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        RectF plateRectF = new RectF(0, 0 , mDiameter, mDiameter );
-        Log.i(TAG, "onDraw second: " + second);
+        Log.i(ContentValues.TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
+        Log.i(ContentValues.TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
+        RectF plateRectF = new RectF(0, 0, mDiameter, mDiameter);
         float angle = second / 60F * 360;
-        angle = angle + 6 * ringIncreasePercent;
-//        if (angle > 355 || angle < 5) {
-//            angle = 360;
-//        }
+        if (angle > 355 || angle < 5) {
+            angle = 360;
+        }
         canvas.drawArc(plateRectF, -90, angle, true, mRingPaint);
         canvas.save();
 
@@ -277,18 +273,5 @@ public class ClockfaceView extends View {
 
         Paint.FontMetrics bottomSecondFm = mHourPaint.getFontMetrics();
         canvas.drawText(txtLunarCalendar, plateRectF.centerX(), baseline + mRadius * 0.3F + bottomSecondFm.bottom + mRadius * 0.13F, mBottomSecondTextPaint);
-    }
-
-    private void startAnim() {
-        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1.0F);
-        valueAnimator.setDuration(300);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                ringIncreasePercent = (float) animation.getAnimatedValue();
-                postInvalidate();
-            }
-        });
-        valueAnimator.start();
     }
 }

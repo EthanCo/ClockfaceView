@@ -8,7 +8,7 @@
         <item name="hourEndColor">#aee847</item>
         <item name="plateColor">#3b3a3f</item>
 
-        <item name="ringWidth">10dp</item>
+        <item name="ringWidth">20dp</item>
         <item name="hourTextSize">42sp</item>
 
         <item name="mTopTextColor">#abc5b3</item>

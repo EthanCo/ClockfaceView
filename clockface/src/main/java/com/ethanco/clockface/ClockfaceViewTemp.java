@@ -25,7 +25,7 @@ import java.util.Date;
  * Created by EthanCo on 2016/10/13.
  */
 
-public class ClockfaceView extends View {
+public class ClockfaceViewTemp extends View {
     private static final float DEFAULT_WIDTH = 300;
     private static final float DEFAULT_HEIGHT = 300;
     public static final String TAG = "Z-Clockface";
@@ -66,9 +66,9 @@ public class ClockfaceView extends View {
     private ValueAnimator valueAnimator1;
 
     private static class UpdateHandler extends Handler {
-        protected WeakReference<ClockfaceView> clockfaceRef;
+        protected WeakReference<ClockfaceViewTemp> clockfaceRef;
 
-        public UpdateHandler(ClockfaceView clockfaceView) {
+        public UpdateHandler(ClockfaceViewTemp clockfaceView) {
             this.clockfaceRef = new WeakReference(clockfaceView);
         }
     }
@@ -77,7 +77,7 @@ public class ClockfaceView extends View {
     private UpdateHandler mH = new UpdateHandler(this) {
         @Override
         public void handleMessage(Message msg) {
-            ClockfaceView clockfaceview = this.clockfaceRef.get();
+            ClockfaceViewTemp clockfaceview = this.clockfaceRef.get();
             if (clockfaceview == null) return;
 
             updateDateInfo();
@@ -100,15 +100,15 @@ public class ClockfaceView extends View {
         second = DateUtil.getSecond(d);
     }
 
-    public ClockfaceView(Context context) {
+    public ClockfaceViewTemp(Context context) {
         this(context, null);
     }
 
-    public ClockfaceView(Context context, AttributeSet attrs) {
+    public ClockfaceViewTemp(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public ClockfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ClockfaceViewTemp(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ClockFaceView, defStyleAttr, R.style.DefaultClockfaceStyle);
@@ -199,13 +199,13 @@ public class ClockfaceView extends View {
 
     private int getViewHeight(int heightMeasureSpec) {
         int result = 0;
-        int mode = View.MeasureSpec.getMode(heightMeasureSpec);
-        int size = View.MeasureSpec.getSize(heightMeasureSpec);
-        if (mode == View.MeasureSpec.EXACTLY) {
+        int mode = MeasureSpec.getMode(heightMeasureSpec);
+        int size = MeasureSpec.getSize(heightMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
             result = size;
         } else {
             result = Utils.dp2px(getContext(), DEFAULT_HEIGHT);
-            if (mode == View.MeasureSpec.AT_MOST) {
+            if (mode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, size);
             }
         }
@@ -214,13 +214,13 @@ public class ClockfaceView extends View {
 
     private int getViewWidth(int widthMeasureSpec) {
         int result = 0;
-        int mode = View.MeasureSpec.getMode(widthMeasureSpec);
-        int size = View.MeasureSpec.getSize(widthMeasureSpec);
-        if (mode == View.MeasureSpec.EXACTLY) {
+        int mode = MeasureSpec.getMode(widthMeasureSpec);
+        int size = MeasureSpec.getSize(widthMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
             result = size;
         } else {
             result = Utils.dp2px(getContext(), DEFAULT_WIDTH);
-            if (mode == View.MeasureSpec.AT_MOST) {
+            if (mode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, size);
             }
         }
@@ -245,7 +245,11 @@ public class ClockfaceView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        RectF plateRectF = new RectF(0, 0 , mDiameter, mDiameter );
+        Log.i(ContentValues.TAG, "onDraw getWidth: " + getWidth() + " getHeight:" + getHeight());
+        Log.i(ContentValues.TAG, "onDraw getPaddingLeft(): " + getPaddingLeft());
+        float realRingWidth = (mRadius * ringWidthPercent);
+        float dRingWidth = realRingWidth/2;
+        RectF plateRectF = new RectF(0 + dRingWidth, 0 + dRingWidth, mDiameter - dRingWidth, mDiameter - dRingWidth);
         Log.i(TAG, "onDraw second: " + second);
         float angle = second / 60F * 360;
         angle = angle + 6 * ringIncreasePercent;
@@ -280,15 +284,46 @@ public class ClockfaceView extends View {
     }
 
     private void startAnim() {
-        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1.0F);
-        valueAnimator.setDuration(300);
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                ringIncreasePercent = (float) animation.getAnimatedValue();
-                postInvalidate();
+        if (second >= 1) {
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1.0F);
+            valueAnimator.setDuration(300);
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    ringIncreasePercent = (float) animation.getAnimatedValue();
+                    postInvalidate();
+                    Log.i(TAG, "onAnimationUpdate second: " + second + " ringIncreasePercent:" + ringIncreasePercent + " notRunning:");
+                    if (second == 59 && ringIncreasePercent > 0.6 && (valueAnimator1 == null || !valueAnimator1.isRunning())) {
+                        valueAnimator1 = ValueAnimator.ofFloat(0F, 1F);
+                        valueAnimator1.setDuration(500);
+                        valueAnimator1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                            @Override
+                            public void onAnimationUpdate(ValueAnimator animation) {
+                                ringWidthPercent = (float) animation.getAnimatedValue();
+                                postInvalidate();
+                            }
+                        });
+                        valueAnimator1.start();
+                    }
+                }
+            });
+            valueAnimator.start();
+            if (second == 59) {
+//            ValueAnimator valueAnimator1 = ValueAnimator.ofFloat(0F, 1F);
+//            valueAnimator1.setDuration(500);
+//            valueAnimator1.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+//                @Override
+//                public void onAnimationUpdate(ValueAnimator animation) {
+//                    ringWidthPercent = (float) animation.getAnimatedValue();
+//                    postInvalidate();
+//                }
+//            });
+//            valueAnimator1.start();
+            } else {
+                ringWidthPercent = 0;
             }
-        });
-        valueAnimator.start();
+        }
+
+
     }
 }
