@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="ClockFaceView">
+        <!--外环渐变 开始颜色-->
         <attr name="ringStartColor" format="color" />
+        <!--外环渐变 结束颜色-->
         <attr name="ringEndColor" format="color" />
+        <!--外环宽度-->
         <attr name="ringWidth" format="dimension" />
 
+        <!--小时:分钟 Text渐变 开始颜色-->
         <attr name="hourStartColor" format="color" />
+        <!--小时:分钟 Text渐变 结束颜色-->
         <attr name="hourEndColor" format="color" />
+        <!--小时:分钟 字体大小-->
+        <attr name="hourTextSize" format="dimension" />
 
+        <!--表盘 颜色-->
         <attr name="plateColor" format="color" />
 
+        <!--顶部字体颜色-->
         <attr name="mTopTextColor" format="color" />
+        <!--顶部字体大小-->
         <attr name="mTopTextSize" format="dimension" />
 
+        <!--底部字体颜色-->
         <attr name="mBottomTextColor" format="color" />
+        <!--底部字体大小-->
         <attr name="mBottomTextSize" format="dimension" />
 
+        <!--底部(次标题)字体颜色-->
         <attr name="mBottomSecondTextColor" format="color" />
+        <!--底部(次标题)字体大小-->
         <attr name="mBottomSecondTextSize" format="dimension" />
 
-        <attr name="hourTextSize" format="dimension" />
     </declare-styleable>
 </resources>

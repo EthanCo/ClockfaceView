@@ -4,8 +4,8 @@
     <style name="DefaultClockfaceStyle">
         <item name="ringStartColor">#01ce9b</item>
         <item name="ringEndColor">#aee847</item>
-        <item name="hourStartColor">#01ce9b</item>
-        <item name="hourEndColor">#aee847</item>
+        <item name="hourStartColor">#aee847</item>
+        <item name="hourEndColor">#01ce9b</item>
         <item name="plateColor">#3b3a3f</item>
 
         <item name="ringWidth">20dp</item>

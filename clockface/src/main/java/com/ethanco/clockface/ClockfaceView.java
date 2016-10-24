@@ -90,14 +90,14 @@ public class ClockfaceView extends View {
 
     private void updateDateInfo() {
         Date d = new Date();
-        txtHour = DateUtil.date2Str(d, DateUtil.FORMAT_HM);
-        txtTimeFrame = DateUtil.getAmPm(d);
+        txtHour = Utils.date2Str(d, Utils.FORMAT_HM);
+        txtTimeFrame = Utils.getAmPm(d);
         txtWeek = String.format(getResources().getString(R.string.date_info),
-                DateUtil.getMonth(d), DateUtil.getDay(d), DateUtil.getWeek(d));
-        Lunar lunar = DateUtil.getLunar(d);
+                Utils.getMonth(d), Utils.getDay(d), Utils.getWeek(d));
+        Lunar lunar = Utils.getLunar(d);
         txtLunarCalendar = String.format(getResources().getString(
                 R.string.date_lunar), lunar.cyclical(), lunar.toString());
-        second = DateUtil.getSecond(d);
+        second = Utils.getSecond(d);
     }
 
     public ClockfaceView(Context context) {

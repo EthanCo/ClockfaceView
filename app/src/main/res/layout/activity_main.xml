@@ -10,8 +10,26 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin">
 
+    <!--<com.ethanco.clockface.ClockfaceView-->
+        <!--android:layout_width="500dp"-->
+        <!--android:layout_height="500dp"-->
+        <!--android:layout_centerInParent="true" />-->
+
     <com.ethanco.clockface.ClockfaceView
         android:layout_width="500dp"
         android:layout_height="500dp"
-        android:layout_centerInParent="true" />
+        android:layout_centerInParent="true"
+        app:hourEndColor="#01ce9b"
+        app:hourStartColor="#aee847"
+        app:hourTextSize="42sp"
+        app:mBottomSecondTextColor="#FFFFFF"
+        app:mBottomSecondTextSize="16sp"
+        app:mBottomTextColor="#FFFFFF"
+        app:mBottomTextSize="22sp"
+        app:mTopTextColor="#abc5b3"
+        app:mTopTextSize="24sp"
+        app:plateColor="#3b3a3f"
+        app:ringEndColor="#aee847"
+        app:ringStartColor="#01ce9b"
+        app:ringWidth="20dp" />
 </RelativeLayout>
