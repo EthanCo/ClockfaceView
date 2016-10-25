@@ -1,7 +1,6 @@
 package com.ethanco.clockface;
 
 import android.animation.ValueAnimator;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -14,8 +13,10 @@ import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
+
+import com.ethanco.clockface.utils.Lunar;
+import com.ethanco.clockface.utils.Utils;
 
 import java.lang.ref.WeakReference;
 import java.util.Date;
@@ -26,45 +27,78 @@ import java.util.Date;
  */
 
 public class ClockfaceView extends View {
+    //默认宽度
     private static final float DEFAULT_WIDTH = 300;
+    //默认高度
     private static final float DEFAULT_HEIGHT = 300;
-    public static final String TAG = "Z-Clockface";
+    //间隔时长
+    public static final int DELAY_MILLIS = 1000;
 
-    private final int mRingStartColor;
-    private final int mRingEndColor;
-    private final int mHourStartColor;
-    private final int mHourEndColor;
-    private final int mPlateColor;
-    private final float hourTextSize;
-    private final float mRingWidth;
-    private final int mTopTextColor;
-    private final float mTopTextSize;
-    private final int mBottomTextColor;
-    private final float mBottomTextSize;
-    private final int mBottomSecondTextColor;
-    private final float mBottomSecondTextSize;
+    //外环 渐变开始颜色
+    private int mRingStartColor;
+    //外环 渐变结束颜色
+    private int mRingEndColor;
+    //外环 宽度
+    private float mRingWidth;
+    //小时:分钟 渐变开始颜色
+    private int mHourStartColor;
+    //小时:分钟 渐变结束颜色
+    private int mHourEndColor;
+    //小时:分钟 字体大小
+    private float mHourTextSize;
+    //表盘颜色
+    private int mPlateColor;
+    //顶部 字体颜色
+    private int mTopTextColor;
+    //顶部 字体大小
+    private float mTopTextSize;
+    //底部 字体颜色
+    private int mBottomTextColor;
+    //底部 字体大小
+    private float mBottomTextSize;
+    //底部(次标题) 字体颜色
+    private int mBottomSecondTextColor;
+    //底部(次标题) 字体大小
+    private float mBottomSecondTextSize;
 
-    private int mWidth; //View宽
-    private int mHeight; //View高
-    private int mRadius; //半径
-    private int mDiameter; //直径
+    //View宽
+    private int mWidth;
+    //View高
+    private int mHeight;
 
-    private Paint mRingPaint; //分钟光环
-    private Paint mHourPaint;  //小时文字
-    private Paint mPlatePaint; //黑色表盘
+    //半径
+    private int mRadius;
+    //直径
+    private int mDiameter;
+
+    //分钟光环
+    private Paint mRingPaint;
+    //小时文字
+    private Paint mHourPaint;
+    //黑色表盘
+    private Paint mPlatePaint;
+    //顶部字体Paint
     private Paint mTopTextPaint;
+    //底部字体Paint
     private Paint mBottomTextPaint;
+    //底部(次标题) 字体Paint
     private Paint mBottomSecondTextPaint;
 
-    private String txtHour = "--:--"; //小时分钟
-    private String txtTimeFrame = "--"; //时段 AM、PM
-    private String txtWeek = "--月--日 星期-/-"; //星期
-    private String txtLunarCalendar = "-/-年-/-月-/-"; //农历
-    private int second = 0; //秒
-    private float ringIncreasePercent;
-    private float ringWidthPercent;
-    private ValueAnimator valueAnimator1;
+    ////小时分钟
+    private String txtHour = "--:--";
+    //时段 AM、PM
+    private String txtTimeFrame = "--";
+    //星期
+    private String txtWeek = "--月--日 星期-/-";
+    //农历
+    private String txtLunarCalendar = "-/-年-/-月-/-";
+    //秒
+    private int second = 0;
 
+    //外环增加 百分比
+    private float ringIncreasePercent;
+
+    //更新UI Handler
     private static class UpdateHandler extends Handler {
         protected WeakReference<ClockfaceView> clockfaceRef;
 
@@ -73,7 +107,6 @@ public class ClockfaceView extends View {
         }
     }
 
-    public static final int DELAY_MILLIS = 1000;
     private UpdateHandler mH = new UpdateHandler(this) {
         @Override
         public void handleMessage(Message msg) {
@@ -81,24 +114,12 @@ public class ClockfaceView extends View {
             if (clockfaceview == null) return;
 
             updateDateInfo();
-            startAnim();
+            startRingIncreaseAnim();
             //invalidate();
 
             mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
         }
     };
-
-    private void updateDateInfo() {
-        Date d = new Date();
-        txtHour = Utils.date2Str(d, Utils.FORMAT_HM);
-        txtTimeFrame = Utils.getAmPm(d);
-        txtWeek = String.format(getResources().getString(R.string.date_info),
-                Utils.getMonth(d), Utils.getDay(d), Utils.getWeek(d));
-        Lunar lunar = Utils.getLunar(d);
-        txtLunarCalendar = String.format(getResources().getString(
-                R.string.date_lunar), lunar.cyclical(), lunar.toString());
-        second = Utils.getSecond(d);
-    }
 
     public ClockfaceView(Context context) {
         this(context, null);
@@ -111,6 +132,95 @@ public class ClockfaceView extends View {
     public ClockfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
+        //初始化自定义属性
+        initAttrs(context, attrs, defStyleAttr);
+        //初始化Paint
+        initPaint(context);
+        //定时间隔更新UI
+        updateUi();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        mWidth = getViewWidth(widthMeasureSpec);
+        mHeight = getViewHeight(heightMeasureSpec);
+        setMeasuredDimension(mWidth, mHeight);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+
+        mDiameter = Math.min(mWidth, mHeight);
+        mRadius = (int) (mDiameter / 2.0F);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        //Log.i(TAG, "onDraw second: " + second);
+
+        RectF plateRectF = new RectF(0, 0, mDiameter, mDiameter);
+        //绘制外环
+        drawRing(canvas, plateRectF);
+        //绘制表盘
+        drawPlate(canvas);
+        //绘制文字
+        drawTexts(canvas, plateRectF);
+
+
+    }
+
+    //============================= Z-具体方法 ==============================/
+
+    private void drawRing(Canvas canvas, RectF plateRectF) {
+        float angle = second / 60F * 360;
+        angle = angle + 6 * ringIncreasePercent;
+        canvas.drawArc(plateRectF, -90, angle, true, mRingPaint);
+        canvas.save();
+    }
+
+    private void drawPlate(Canvas canvas) {
+        int centerX = mRadius, centerY = mRadius;
+        int platemRadius = (int) (mRadius - mRingWidth);
+        canvas.drawCircle(centerX, centerY, platemRadius, mPlatePaint);
+    }
+
+    private void drawTexts(Canvas canvas, RectF plateRectF) {
+        //字体高度 http://sd4886656.iteye.com/blog/1200890
+        //Paint.FontMetrics fm = mHourPaint.getFontMetrics();
+        //float hourHalfHeight = (fm.bottom - fm.top) / 2.0F;
+
+        //文字居中
+        Paint.FontMetricsInt fontMetrics = mHourPaint.getFontMetricsInt();
+        int baseline = (int) ((plateRectF.bottom + plateRectF.top - fontMetrics.bottom - fontMetrics.top) / 2F);
+
+        canvas.drawText(txtHour, plateRectF.centerX(), baseline, mHourPaint);
+        canvas.drawText(txtTimeFrame, plateRectF.centerX(), baseline / 2F, mTopTextPaint);
+        canvas.drawText(txtWeek, plateRectF.centerX(), baseline + mRadius * 0.3F, mBottomTextPaint);
+        Paint.FontMetrics bottomSecondFm = mHourPaint.getFontMetrics();
+        canvas.drawText(txtLunarCalendar, plateRectF.centerX(), baseline + mRadius * 0.3F
+                + bottomSecondFm.bottom + mRadius * 0.13F, mBottomSecondTextPaint);
+    }
+
+    private int getViewHeight(int heightMeasureSpec) {
+        int result = 0;
+        int mode = View.MeasureSpec.getMode(heightMeasureSpec);
+        int size = View.MeasureSpec.getSize(heightMeasureSpec);
+        if (mode == View.MeasureSpec.EXACTLY) {
+            result = size;
+        } else {
+            result = Utils.dp2px(getContext(), DEFAULT_HEIGHT);
+            if (mode == View.MeasureSpec.AT_MOST) {
+                result = Math.min(result, size);
+            }
+        }
+        return result;
+    }
+
+    private void initAttrs(Context context, AttributeSet attrs, int defStyleAttr) {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ClockFaceView, defStyleAttr, R.style.DefaultClockfaceStyle);
 
         mRingStartColor = ta.getColor(R.styleable.ClockFaceView_ringStartColor, 0);
@@ -125,19 +235,14 @@ public class ClockfaceView extends View {
         mBottomTextSize = ta.getDimension(R.styleable.ClockFaceView_mBottomTextSize, 0);
         mBottomSecondTextColor = ta.getColor(R.styleable.ClockFaceView_mBottomSecondTextColor, 0);
         mBottomSecondTextSize = ta.getDimension(R.styleable.ClockFaceView_mBottomSecondTextSize, 0);
-
-        hourTextSize = ta.getDimension(R.styleable.ClockFaceView_hourTextSize, 0);
+        mHourTextSize = ta.getDimension(R.styleable.ClockFaceView_hourTextSize, 0);
 
         ta.recycle();
-
-        init(context);
-
-        mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
     }
 
-    private void init(Context context) {
+    private void initPaint(Context context) {
         mHourPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mHourPaint.setTextSize(hourTextSize);
+        mHourPaint.setTextSize(mHourTextSize);
         mHourPaint.setTypeface(Typeface.DEFAULT_BOLD);//设置字体类型
         mHourPaint.setTextAlign(Paint.Align.CENTER); //设置居中
 
@@ -161,55 +266,22 @@ public class ClockfaceView extends View {
         mBottomSecondTextPaint.setTextSize(mBottomSecondTextSize);
         mBottomSecondTextPaint.setColor(mBottomSecondTextColor);
 
-        int mRadius = 150;
+        int tempRadius = 150;
+        int sqrt = (int) Math.sqrt(Math.pow(tempRadius, 2) / 2.0F); //以半径为半径的等边三角形的等边
+        Point gradientStartPoint = new Point((tempRadius + sqrt), (tempRadius - sqrt));
+        Point gradientEndPoint = new Point((tempRadius - sqrt), (tempRadius + sqrt));
 
-        //int leftStart = (int) (mRadius - Math.sqrt(Math.pow(mRadius, 2) / 2.0F));
-        //int rightEnd = (int) (mRadius + Math.sqrt(Math.pow(mRadius, 2) / 2.0F)) + 1;
-
-        int sqrt = (int) Math.sqrt(Math.pow(mRadius, 2) / 2.0F); //以半径为半径的等边三角形的等边
-        Point gradientStartPoint = new Point((mRadius + sqrt), (mRadius - sqrt));
-        Point gradientEndPoint = new Point((mRadius - sqrt), (mRadius + sqrt));
-        //int leftStart = (int) (mRadius - sqrt);
-        //int rightEnd = (int) (mRadius + sqrt) + 1;
-
-        Log.i(ContentValues.TAG, "init gradientStartPoint.x: " + gradientStartPoint.x + " gradientStartPoint.y:"
-                + gradientStartPoint.y + " gradientEndPoint.x:" + gradientEndPoint.x + " gradientEndPoint.y:" + gradientEndPoint.y);
-
-        LinearGradient gradient = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
+        LinearGradient gradientRing = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
                 gradientEndPoint.x, gradientEndPoint.y, mRingStartColor, mRingEndColor, Shader.TileMode.CLAMP);
-        mRingPaint.setShader(gradient);
+        mRingPaint.setShader(gradientRing);
 
-        //LinearGradient gradient1 = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
-        //       gradientEndPoint.x, gradientEndPoint.y, Color.RED, Color.BLUE, Shader.TileMode.CLAMP);
-
-        LinearGradient gradient1 = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
+        LinearGradient gradientHour = new LinearGradient(gradientStartPoint.x, gradientStartPoint.y,
                 gradientEndPoint.x, gradientEndPoint.y, mHourStartColor, mHourEndColor, Shader.TileMode.CLAMP);
-
-        mHourPaint.setShader(gradient1);
+        mHourPaint.setShader(gradientHour);
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        mWidth = getViewWidth(widthMeasureSpec);
-        mHeight = getViewHeight(heightMeasureSpec);
-        setMeasuredDimension(mWidth, mHeight);
-    }
-
-    private int getViewHeight(int heightMeasureSpec) {
-        int result = 0;
-        int mode = View.MeasureSpec.getMode(heightMeasureSpec);
-        int size = View.MeasureSpec.getSize(heightMeasureSpec);
-        if (mode == View.MeasureSpec.EXACTLY) {
-            result = size;
-        } else {
-            result = Utils.dp2px(getContext(), DEFAULT_HEIGHT);
-            if (mode == View.MeasureSpec.AT_MOST) {
-                result = Math.min(result, size);
-            }
-        }
-        return result;
+    private void updateUi() {
+        mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
     }
 
     private int getViewWidth(int widthMeasureSpec) {
@@ -227,59 +299,7 @@ public class ClockfaceView extends View {
         return result;
     }
 
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-//        int width = getWidth();
-//        int height = getHeight();
-//        int min = Math.min(width, height);
-//        mWidth = min;
-//        mHeight = min;
-
-        mDiameter = Math.min(mWidth, mHeight);
-        mRadius = (int) (mDiameter / 2.0F);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        RectF plateRectF = new RectF(0, 0 , mDiameter, mDiameter );
-        Log.i(TAG, "onDraw second: " + second);
-        float angle = second / 60F * 360;
-        angle = angle + 6 * ringIncreasePercent;
-//        if (angle > 355 || angle < 5) {
-//            angle = 360;
-//        }
-        canvas.drawArc(plateRectF, -90, angle, true, mRingPaint);
-        canvas.save();
-
-        int centerX = mRadius, centerY = mRadius;
-        int platemRadius = (int) (mRadius - mRingWidth);
-        canvas.drawCircle(centerX, centerY, platemRadius, mPlatePaint);
-
-        //Paint.FontMetrics fm = mHourPaint.getFontMetrics();
-        //字体高度 http://sd4886656.iteye.com/blog/1200890
-        //float hourHalfHeight = (fm.bottom - fm.top) / 2.0F;
-        //float hourHalfHeight = Math.abs(fm.ascent) / 2.0F;
-        //Log.i(TAG, "onDraw hourHalfHeight: " + hourHalfHeight);
-        //文字居中
-        Paint.FontMetricsInt fontMetrics = mHourPaint.getFontMetricsInt();
-        int baseline = (int) ((plateRectF.bottom + plateRectF.top - fontMetrics.bottom - fontMetrics.top) / 2F);
-
-        canvas.drawText(txtHour, plateRectF.centerX(), baseline, mHourPaint);
-        //canvas.drawText("15:30", 44, mRadius + hourHalfHeight, mHourPaint);
-
-        canvas.drawText(txtTimeFrame, plateRectF.centerX(), baseline / 2F, mTopTextPaint);
-
-        canvas.drawText(txtWeek, plateRectF.centerX(), baseline + mRadius * 0.3F, mBottomTextPaint);
-
-        Paint.FontMetrics bottomSecondFm = mHourPaint.getFontMetrics();
-        canvas.drawText(txtLunarCalendar, plateRectF.centerX(), baseline + mRadius * 0.3F + bottomSecondFm.bottom + mRadius * 0.13F, mBottomSecondTextPaint);
-    }
-
-    private void startAnim() {
+    private void startRingIncreaseAnim() {
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1.0F);
         valueAnimator.setDuration(300);
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -290,5 +310,17 @@ public class ClockfaceView extends View {
             }
         });
         valueAnimator.start();
+    }
+
+    private void updateDateInfo() {
+        Date d = new Date();
+        txtHour = Utils.date2Str(d, Utils.FORMAT_HM);
+        txtTimeFrame = Utils.getAmPm(d);
+        txtWeek = String.format(getResources().getString(R.string.date_info),
+                Utils.getMonth(d), Utils.getDay(d), Utils.getWeek(d));
+        Lunar lunar = Utils.getLunar(d);
+        txtLunarCalendar = String.format(getResources().getString(
+                R.string.date_lunar), lunar.cyclical(), lunar.toString());
+        second = Utils.getSecond(d);
     }
 }

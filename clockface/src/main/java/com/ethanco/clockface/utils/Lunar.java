@@ -1,4 +1,4 @@
-package com.ethanco.clockface;
+package com.ethanco.clockface.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

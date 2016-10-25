@@ -3,7 +3,7 @@
 
 ![ClockfaceView](/ClockfaceView.gif)  
 
-###[apk下载](/ClockfaceView.apk)
+###[apk下载](https://github.com/EthanCo/ClockfaceView/raw/master/ClockfaceView.apk)
 
 ## 添加依赖 ##
 
