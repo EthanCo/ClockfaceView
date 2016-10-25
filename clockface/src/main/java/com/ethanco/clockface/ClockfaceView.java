@@ -169,8 +169,6 @@ public class ClockfaceView extends View {
         drawPlate(canvas);
         //绘制文字
         drawTexts(canvas, plateRectF);
-
-
     }
 
     //============================= Z-具体方法 ==============================/
