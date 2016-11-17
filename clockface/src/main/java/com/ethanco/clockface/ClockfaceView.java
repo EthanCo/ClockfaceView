@@ -113,9 +113,9 @@ public class ClockfaceView extends View {
             ClockfaceView clockfaceview = this.clockfaceRef.get();
             if (clockfaceview == null) return;
 
-            updateDateInfo();
-            startRingIncreaseAnim();
-            //invalidate();
+            clockfaceview.updateDateInfo();
+            clockfaceview.startRingIncreaseAnim();
+            //clockfaceview.invalidate();
 
             mH.sendEmptyMessageDelayed(0, DELAY_MILLIS);
         }
