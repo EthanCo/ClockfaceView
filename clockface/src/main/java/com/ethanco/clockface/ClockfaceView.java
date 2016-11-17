@@ -107,7 +107,7 @@ public class ClockfaceView extends View {
         }
     }
 
-    private UpdateHandler mH = new UpdateHandler(this) {
+    private static UpdateHandler mH = new UpdateHandler(this) {
         @Override
         public void handleMessage(Message msg) {
             ClockfaceView clockfaceview = this.clockfaceRef.get();
