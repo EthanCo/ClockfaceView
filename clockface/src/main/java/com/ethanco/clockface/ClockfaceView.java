@@ -219,6 +219,7 @@ public class ClockfaceView extends View {
     }
 
     private void initAttrs(Context context, AttributeSet attrs, int defStyleAttr) {
+        //属性值获取的优先级从高到低依次是set, defStyleAttr, defStyleRes.
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ClockFaceView, defStyleAttr, R.style.DefaultClockfaceStyle);
 
         mRingStartColor = ta.getColor(R.styleable.ClockFaceView_ringStartColor, 0);
