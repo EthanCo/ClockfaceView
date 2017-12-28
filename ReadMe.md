@@ -1,13 +1,15 @@
 # ClockfaceView #
 一个具有渐变、动画效果的时钟控件  
 
+![ClockfaceView](http://oqk78xit2.bkt.clouddn.com/ClockfaceView.gif)
+
 ![ClockfaceView](/ClockfaceView.gif)  
 
-###[apk下载](https://github.com/EthanCo/ClockfaceView/raw/master/ClockfaceView.apk)
+### [apk下载](https://github.com/EthanCo/ClockfaceView/raw/master/ClockfaceView.apk)
 
 ## 添加依赖 ##
 
-###Step 1. Add the JitPack repository to your build file  
+### Step 1. Add the JitPack repository to your build file  
 
 Add it in your root build.gradle at the end of repositories:  
 
@@ -18,7 +20,7 @@ Add it in your root build.gradle at the end of repositories:
 		}
 	}  
 
-###Step 2. Add the dependency  
+### Step 2. Add the dependency  
 
 	dependencies {
 		  compile 'com.github.EthanCo:ClockfaceView:1.0.1'
@@ -85,7 +87,7 @@ Add it in your root build.gradle at the end of repositories:
         app:ringStartColor="#01ce9b"
         app:ringWidth="20dp" />  
 
-###也可以使用主题  
+### 也可以使用主题  
 
 	 <style name="DefaultClockfaceStyle">
 	    <item name="ringStartColor">#01ce9b</item>
